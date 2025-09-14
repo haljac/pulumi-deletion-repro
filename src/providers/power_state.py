@@ -35,7 +35,6 @@ class PowerStateProvider(dynamic.ResourceProvider):
     @override
     def diff(self, id_: str, _, news) -> dynamic.DiffResult:
         replaces = []
-
         result = db(self.db_url).read(id_)
         changes = result["power_state"] != news["power_state"]
         if changes:

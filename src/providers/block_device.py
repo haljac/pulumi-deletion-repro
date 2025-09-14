@@ -22,7 +22,6 @@ class BlockDeviceProvider(dynamic.ResourceProvider):
 
     @override
     def create(self, props) -> dynamic.CreateResult:
-        pulumi.log.info("Creating BlockDevice")
         return dynamic.CreateResult(
             id_=props["uid"],
             outs={},
@@ -31,7 +30,6 @@ class BlockDeviceProvider(dynamic.ResourceProvider):
 
     @override
     def delete(self, id_: str, _) -> None:
-        pulumi.log.info("Deleting BlockDevice")
         time.sleep(2)
         db(self.db_url).update(id_, "off")
 

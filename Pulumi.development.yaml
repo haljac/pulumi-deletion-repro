@@ -1,0 +1,4 @@
+encryptionsalt: v1:V1PWJbjsbNM=:v1:EGln4zsFtjOPX6A9:LuSd7tU0BMD80WjHVr70iF/AxNd4Ig==
+config:
+  widget-pulumi:db_url: some.db
+  deletion-dependency-demo:db_url: some.db

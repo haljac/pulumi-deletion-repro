@@ -6,8 +6,8 @@ class NotFoundError(Exception):
 
 _db = None
 class DB:
-    def __init__(self, db_url):
-        self.conn = sqlite3.connect(db_url)
+    def __init__(self, db_url, conn = None):
+        self.conn = conn or sqlite3.connect(db_url)
         with self._session() as cursor:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS vms (

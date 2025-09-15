@@ -3,10 +3,10 @@ import time
 
 from typing import Any, Mapping, override
 
+import os
 import pulumi
 from pulumi import dynamic
 
-from db import db
 
 
 class BlockDeviceProvider(dynamic.ResourceProvider):
@@ -30,8 +30,8 @@ class BlockDeviceProvider(dynamic.ResourceProvider):
 
     @override
     def delete(self, id_: str, _) -> None:
+        pulumi.log.info(f"({time.monotonic()})[BlockDevice] delete for pid {os.getpid()}")
         time.sleep(2)
-        db(self.db_url).update(id_, "off")
 
 
 class BlockDevice(dynamic.Resource, module="block_device", name="BlockDevice"):

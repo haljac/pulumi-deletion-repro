@@ -3,78 +3,50 @@
 import pulumi
 import os
 
-from providers import VM, BlockDevice, PowerState
+import time
+from components.vmc import VMC, VMCInputs
+from db import db
 
 example_program_number = int(os.environ["EXAMPLE_PROGRAM_NUMBER"])
 
+def shutdown_vm(args: pulumi.ResourceHookArgs):
+    pulumi.log.info(f"({time.monotonic()})[hook] shutdown_vm {args.old_inputs=}")
+    pulumi.log.info(f"({time.monotonic()})[hook] shutdown_vm {args.new_inputs=}")
+    pulumi.log.info(f"({time.monotonic()})[hook] before_update")
+    vm_id = (args.old_outputs or {}).get("vm_id")
+    old_n_block_devs = getattr(args, "old_inputs", {}).get("num_block_devs", 0)
+    new_n_block_devs = getattr(args, "new_inputs", {}).get("num_block_devs", 0)
+    if old_n_block_devs > new_n_block_devs:
+        pulumi.log.info(f"({time.monotonic()})[hook] shutting down VM because block device count is decreasing")
+        db("some.db").update(vm_id, "off")
+        time.sleep(2)
 
 def example_program_first_run():
-    """
-    The VM begins with 'pending' power_state.
-
-    The VM is only responsible for creating the record in the remote system,
-    but it never modifies it or acts on it beyond initial creation.
-
-    For the purposes of this example, the VM is never updated or deleted.
-    """
-    vm = VM(name="example_vm")
-
-    """
-    The BlockDevice resource requires the VM to be "off" before it can be created.
-    Upon being deleted, it must also place the VM in an "off" state.
-    """
-    block_device = BlockDevice(
-        name="example_block_device",
-        props={"uid": vm.uid},
+    vmc = VMC(
+        name="example_vmc",
+        props=VMCInputs(num_block_devs=1),
         opts=pulumi.ResourceOptions(
-            depends_on=[vm]
+            hooks=pulumi.ResourceHookBinding(
+                before_update=[shutdown_vm],
+                after_update=[]
+            )
         )
     )
-
-    """
-    This PowerState resources is intended to always turn the VM on at the end of
-    program execution.
-    """
-    power_state = PowerState(
-        name="example_power_state",
-        props={"uid": vm.uid, "power_state": "on"},
-        opts=pulumi.ResourceOptions(
-            depends_on=[vm, block_device]
-        )
-    )
-
-    pulumi.export("vm", vm)
-    pulumi.export("block_device", block_device)
-    pulumi.export("power_state", power_state)
+    pulumi.export("vmc", vmc)
 
 
 def example_program_second_run():
-    """
-    This program removes the BlockDevice resource, which requires the VM to be "off"
-    """
-    vm = VM(name="example_vm")
-
-    """
-    The BlockDevice resource requires the VM to be "off" before it can be created.
-    Upon being deleted, it must also place the VM in an "off" state.
-
-    BlockDevice is removed in this second run.
-    """
-
-    """
-    This PowerState resources is intended to always turn the VM on at the end of
-    program execution.
-    """
-    power_state = PowerState(
-        name="example_power_state",
-        props={"uid": vm.uid, "power_state": "on"},
+    vmc = VMC(
+        name="example_vmc",
+        props=VMCInputs(num_block_devs=0),
         opts=pulumi.ResourceOptions(
-            depends_on=[vm]
+            hooks=pulumi.ResourceHookBinding(
+                before_update=[shutdown_vm],
+                after_update=[]
+            )
         )
     )
-
-    pulumi.export("vm", vm)
-    pulumi.export("power_state", power_state)
+    pulumi.export("vmc", vmc)
 
 if __name__ == "__main__":
     if example_program_number == 1:

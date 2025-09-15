@@ -1,4 +1,6 @@
 #!/bin/bash
+rm -rf ~/.pulumi
+rm some.db
 pulumi login --local
 
 PULUMI_CONFIG_PASSPHRASE="" pulumi stack init development

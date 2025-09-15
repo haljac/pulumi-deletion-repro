@@ -37,9 +37,6 @@ class PowerStateProvider(dynamic.ResourceProvider):
         replaces = []
         result = db(self.db_url).read(id_)
         changes = result["power_state"] != news["power_state"]
-        if changes:
-            replaces.append("power_state")
-
         return dynamic.DiffResult(
             changes=changes,
             replaces=replaces,

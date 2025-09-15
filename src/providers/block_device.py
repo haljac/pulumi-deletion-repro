@@ -6,7 +6,6 @@ from typing import Any, Mapping, override
 import pulumi
 from pulumi import dynamic
 
-from db import db
 
 
 class BlockDeviceProvider(dynamic.ResourceProvider):
@@ -31,7 +30,8 @@ class BlockDeviceProvider(dynamic.ResourceProvider):
     @override
     def delete(self, id_: str, _) -> None:
         time.sleep(2)
-        db(self.db_url).update(id_, "off")
+        pulumi.log.info(f"({time.monotonic()})[BlockDeviceProvider] delete {id_=}")
+        # db(self.db_url).update(id_, "off")
 
 
 class BlockDevice(dynamic.Resource, module="block_device", name="BlockDevice"):
